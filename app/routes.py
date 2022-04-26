@@ -1,4 +1,3 @@
-from re import A
 from flask import Blueprint, jsonify, abort, make_response
 
 class Planets:
@@ -8,12 +7,21 @@ class Planets:
         self.name = name
         self.description = description
         self.moons = moons
+
+    def return_planet_dict(self):
+        return {
+                "id": self.id,
+                "name": self.name,
+                "description": self.description,
+                "moons": self.moons
+            }
     
 planets = [
     Planets(1, "Mercury", "first planet from the sun", 0),
     Planets(2, "Venus", "second planet from the sun", 0),
     Planets(3, "Earth", "third planet from the sun", 1),
 ]
+
 
 planets_bp = Blueprint("planets", __name__, url_prefix="/planets")
 
@@ -31,22 +39,10 @@ def validate_planet(planet_id):
 def get_all_planets():
     response = []
     for planet in planets:
-        response.append(
-            {
-                "id": planet.id,
-                "name": planet.name,
-                "description": planet.description,
-                "moons": planet.moons
-            }
-        ) 
+        response.append(planet.return_planet_dict()) 
     return jsonify(response), 200
 
 @planets_bp.route("/<planet_id>", methods=["GET"])
 def get_planet(planet_id):
     planet = validate_planet(planet_id)
-    return jsonify({
-        "id": planet.id,
-        "name": planet.name,
-        "description": planet.description,
-        "moons": planet.moons
-    })
+    return jsonify(planet.return_planet_dict())

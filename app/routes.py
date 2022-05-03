@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, make_response
+from flask import Blueprint, jsonify, request, make_response, abort
 
 from app import db
 from app.models.planet import Planet
@@ -20,16 +20,18 @@ def create_planet():
 
     return make_response(f"Planet: {new_planet.name} successfully created", 201)
 
+def validate_planet(planet_id):
+    try:
+        planet_id = int(planet_id)
+    except: 
+        abort(make_response({'msg': f"Invalid planet ID: '{planet_id}'. Planet ID must be an integer."}, 400))
 
-# def validate_planet(planet_id):
-#     try:
-#         planet_id = int(planet_id)
-#     except: 
-#         abort(make_response({'msg': f"Invalid planet ID: '{planet_id}'. Planet ID must be an integer."}, 400))
-#     for planet in planets:
-#         if planet.id == planet_id:
-#             return planet
-#     abort(make_response({'msg': f"no planet with id '{planet_id}' found"}, 404))
+    planet = Planet.query.get(planet_id)
+
+    if not planet:
+        abort(make_response({'msg': f"no planet with id '{planet_id}' found"}, 404))
+    
+    return planet
 
 @planets_bp.route("", methods=["GET"])
 def get_all_planets():
@@ -46,7 +48,12 @@ def get_all_planets():
         ) 
     return jsonify(response), 200
 
-# @planets_bp.route("/<planet_id>", methods=["GET"])
-# def get_planet(planet_id):
-#     planet = validate_planet(planet_id)
-#     return jsonify(planet.return_planet_dict())
+@planets_bp.route("/<planet_id>", methods=["GET"])
+def get_planet(planet_id):
+    planet = validate_planet(planet_id)
+    return {
+        "id": planet.id,
+        "name": planet.name,
+        "description": planet.description,
+        "moons": planet.moons
+    }

@@ -57,3 +57,27 @@ def get_planet(planet_id):
         "description": planet.description,
         "moons": planet.moons
     }
+
+@planets_bp.route("/<planet_id>", methods=["PUT"])
+def update_planet(planet_id):
+    planet = validate_planet(planet_id)
+    request_body = request.get_json()
+    if "name" not in request_body or "moons" not in request_body or "description" not in request_body:
+        return jsonify({'msg': f"Request must include name, moons, description"}), 400
+
+    planet.name = request_body["name"]
+    planet.moons = request_body["moons"]
+    planet.description = request_body["description"]
+
+    db.session.commit()
+
+    return make_response(f"Planet with id {planet_id} was succsessfully replaced", 200)
+
+@planets_bp.route("/<planet_id>", methods=["DELETE"])
+def delete_planet(planet_id):
+    planet = validate_planet(planet_id)
+
+    db.session.delete(planet)
+    db.session.commit()
+
+    return make_response(f"Planet with id {planet_id} was succsessfully deleted", 200)

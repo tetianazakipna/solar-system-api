@@ -35,8 +35,17 @@ def validate_planet(planet_id):
 
 @planets_bp.route("", methods=["GET"])
 def get_all_planets():
+    params = request.args
+    if "name" in params:
+        planet_name = params["name"].capitalize()
+        planets = Planet.query.filter_by(name=planet_name)
+    elif "moons" in params:
+        planet_moons = params["moons"]
+        planets = Planet.query.filter_by(moons=planet_moons)
+    else:
+        planets = Planet.query.all()
+    
     response = []
-    planets = Planet.query.all()
     for planet in planets:
         response.append(
             {
